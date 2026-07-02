@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nürburgring Nordschleife — Interactive Map</title>
+<meta name="description" content="Interactive corner-by-corner map of the Nürburgring Nordschleife: geography, elevation, lap records and history — every fact cited.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23101418'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23e23d3d' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="layout">
+  <aside id="sidebar">
+    <header id="side-head">
+      <div class="brand">
+        <span class="brand-ring" aria-hidden="true"></span>
+        <div>
+          <h1>Nordschleife</h1>
+          <p class="sub">Nürburgring · the Green Hell · interactive map</p>
+        </div>
+      </div>
+      <div class="statbar" id="statbar"></div>
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="explore" role="tab" aria-selected="true">Explore</button>
+        <button class="tab" data-tab="records" role="tab" aria-selected="false">Records</button>
+        <button class="tab" data-tab="history" role="tab" aria-selected="false">History</button>
+        <button class="tab" data-tab="about" role="tab" aria-selected="false">About</button>
+      </nav>
+    </header>
+    <div id="side-content">
+      <section id="tab-explore" class="tabpane active">
+        <div class="explore-tools">
+          <input id="search" type="search" placeholder="Search corners… (e.g. Karussell)" aria-label="Search corners">
+          <button id="tour-btn" class="btn-primary" title="Animated lap tour (T)">▶ Drive a lap</button>
+        </div>
+        <ol id="section-list" class="section-list"></ol>
+      </section>
+      <section id="tab-detail" class="tabpane">
+        <button id="back-btn" class="btn-ghost">← All sections</button>
+        <div id="detail-body"></div>
+        <div class="detail-nav">
+          <button id="prev-btn" class="btn-ghost">← Prev</button>
+          <button id="next-btn" class="btn-ghost">Next →</button>
+        </div>
+      </section>
+      <section id="tab-records" class="tabpane"></section>
+      <section id="tab-history" class="tabpane"></section>
+      <section id="tab-about" class="tabpane"></section>
+    </div>
+  </aside>
+  <button id="side-toggle" aria-label="Toggle panel">☰</button>
+  <main id="map-wrap">
+    <div id="map" role="application" aria-label="Map of the Nürburgring Nordschleife"></div>
+    <div id="tour-hud" class="hidden">
+      <button id="tour-play" title="Play/pause (Space)">⏸</button>
+      <div class="tour-info">
+        <div id="tour-section">—</div>
+        <div id="tour-stats">km 0.0 · — m</div>
+      </div>
+      <label class="tour-speed">speed
+        <input id="tour-speed" type="range" min="1" max="8" step="1" value="3">
+        <span id="tour-speed-val">3×</span>
+      </label>
+      <button id="tour-exit" title="Exit tour (Esc)">✕</button>
+    </div>
+    <div id="layers-ctl">
+      <button id="layers-btn" aria-label="Map layers">Layers ▾</button>
+      <div id="layers-menu" class="hidden">
+        <label><input type="checkbox" id="ly-labels" checked> Village labels</label>
+        <label><input type="checkbox" id="ly-gp" checked> GP circuit (context)</label>
+        <label><input type="checkbox" id="ly-steil" checked> Historic Steilstrecke</label>
+        <label><input type="checkbox" id="ly-km" checked> km marks</label>
+        <label><input type="checkbox" id="ly-osm"> OpenStreetMap imagery (online)</label>
+      </div>
+    </div>
+    <div id="elev-panel">
+      <div class="elev-head">
+        <span>Elevation profile <span class="elev-src">terrain along track · EU-DEM via Terrarium</span></span>
+        <button id="elev-toggle" aria-label="Collapse elevation panel">▾</button>
+      </div>
+      <div id="elev-chart"></div>
+    </div>
+    <div id="map-attrib">Map & track data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors · <a href="https://protomaps.com" target="_blank" rel="noopener">Protomaps</a> · Terrain: Terrarium/EU-DEM (AWS Open Data)</div>
+  </main>
+</div>
+<script src="vendor/leaflet.js"></script>
+<script src="js/track.js"></script>
+<script src="js/basemap.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
