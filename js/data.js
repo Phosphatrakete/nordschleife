@@ -6,6 +6,8 @@
 const CONTENT = {
   facts: {
     officialLengthKm: 20.832,
+    /* short values for the header stat chips (full strings below carry context) */
+    chips: { corners: "73", elevation: "320→617 m", maxGradient: "17%", opened: "1927" },
     lengthNote:
       "20.832 km is the full Nordschleife lap used for official record attempts (flying start, timed at T13). Industry/press laps were historically quoted on a ~20.6 km variant; “Bridge to Gantry” tourist timing covers ~19.1 km.",
     corners: "73 official corners (33 left, 40 right)",

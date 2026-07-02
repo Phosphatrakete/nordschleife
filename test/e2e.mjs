@@ -52,17 +52,29 @@ ok(sanity.nHistory >= 14, `history events (${sanity.nHistory})`);
 ok(sanity.secsWithSources === 41, `all 41 sections carry sources (${sanity.secsWithSources})`);
 
 console.log("== click every corner in the list ==");
+let cornerFails = 0;
 for (let i = 0; i < nSections; i++) {
   await page.locator(`#section-list li[data-i="${i}"]`).click();
   await page.waitForTimeout(60);
   const h2 = await page.locator("#detail-body h2").textContent();
   const hasSources = await page.locator("#detail-body .src-list li").count();
   const hasStats = await page.locator("#detail-body .dstat").count();
-  if (!h2 || hasSources === 0 || hasStats < 2) { ok(false, `section ${i + 1} detail incomplete (${h2}, src=${hasSources}, stats=${hasStats})`); }
+  if (!h2 || hasSources === 0 || hasStats < 2) { cornerFails++; ok(false, `section ${i + 1} detail incomplete (${h2}, src=${hasSources}, stats=${hasStats})`); }
   await page.locator("#back-btn").click();
   await page.waitForTimeout(30);
 }
-ok(true, "all 41 detail cards render with stats + sources");
+ok(nSections === 41 && cornerFails === 0, `all 41 detail cards render with stats + sources (${cornerFails} failures)`);
+
+console.log("== stationing consistency ==");
+const stationing = await page.evaluate(() => {
+  const last = SECTIONS[SECTIONS.length - 1];
+  const gapEnd = TOTAL - last.endM;                    // unassigned meters before start/finish
+  const p = pointAt(SECTIONS[24].midM);                // Karussell marker position
+  return { gapEnd, karussellLat: p[0], karussellLng: p[1] };
+});
+ok(stationing.gapEnd < 30, `sections cover the lap to <30 m of start/finish (gap ${stationing.gapEnd.toFixed(1)} m)`);
+ok(Math.abs(stationing.karussellLat - 50.3717) < 0.0012 && Math.abs(stationing.karussellLng - 6.9860) < 0.0018,
+   `Karussell marker lands at the real Karussell (${stationing.karussellLat.toFixed(4)}, ${stationing.karussellLng.toFixed(4)})`);
 
 console.log("== deep-dive: Karussell ==");
 await page.locator("#search").fill("karussell");
@@ -122,11 +134,21 @@ await page.locator('.tab[data-tab="explore"]').click();
 
 console.log("== layers menu ==");
 await page.locator("#layers-btn").click();
+await page.locator("#ly-km").uncheck();
+ok(await page.evaluate(() => !map.hasLayer(kmGroup)), "km layer actually removed");
+await page.locator("#ly-km").check();
+ok(await page.evaluate(() => map.hasLayer(kmGroup)), "km layer restored");
 await page.locator("#ly-gp").uncheck();
-await page.locator("#ly-steil").uncheck();
+ok(await page.evaluate(() => !map.hasLayer(gpGroup)), "GP layer actually removed");
 await page.locator("#ly-gp").check();
+await page.locator("#ly-steil").uncheck();
 await page.locator("#ly-steil").check();
-ok(true, "layer toggles operate without error");
+// km labels must stay zoom-gated after a remove/re-add cycle (CSS bucket rules)
+const kmGate = await page.evaluate(() => {
+  const el = document.querySelector(".km-label");
+  return { visible: el ? getComputedStyle(el).display !== "none" : null, z: map.getZoom() };
+});
+ok(kmGate.visible === (kmGate.z >= 14.5), `km labels zoom-gated after layer re-add (visible=${kmGate.visible} at z${kmGate.z})`);
 await page.keyboard.press("Escape");
 
 console.log("== lap tour ==");
@@ -148,11 +170,19 @@ await page.locator("#tour-exit").click();
 ok(await page.locator("#tour-hud").isHidden(), "tour exits");
 
 console.log("== zoom interactions ==");
+await page.waitForTimeout(1200); // let tourStop's animated fitBounds settle
+const z0 = await page.evaluate(() => map.getZoom());
 await page.locator(".leaflet-control-zoom-in").click();
 await page.locator(".leaflet-control-zoom-in").click();
-await page.waitForTimeout(600);
+await page.waitForTimeout(700);
+const z1 = await page.evaluate(() => map.getZoom());
+ok(z1 > z0, `zoom control raises zoom (${z0} -> ${z1})`);
+const kmVisibleZoomed = await page.evaluate(() => {
+  const el = document.querySelector(".km-label");
+  return el ? getComputedStyle(el).display !== "none" : null;
+});
+ok(kmVisibleZoomed === (z1 >= 14.5), `km labels visibility matches zoom bucket at z${z1}`);
 await page.screenshot({ path: `${SHOTS}/08-zoomed.png` });
-ok(true, "zoom ok");
 
 console.log("== mobile viewport ==");
 await page.setViewportSize({ width: 390, height: 800 });
@@ -173,8 +203,7 @@ await page.screenshot({ path: `${SHOTS}/09-mobile.png` });
 await page.setViewportSize({ width: 1440, height: 900 });
 
 console.log("== console errors ==");
-const realErrors = errors.filter(e => !e.includes("tile.openstreetmap.org") && !e.includes("favicon"));
-ok(realErrors.length === 0, `no console/page errors (${realErrors.slice(0, 5).join(" | ") || "clean"})`);
+ok(errors.length === 0, `no console/page errors (${errors.slice(0, 5).join(" | ") || "clean"})`);
 
 await browser.close();
 console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} FAILURES`);

@@ -154,7 +154,7 @@ a:hover { text-decoration: underline; }
 #map { position: absolute; inset: 0; background: #11181d; }
 .leaflet-container { font: inherit; }
 #map-attrib {
-  position: absolute; right: 6px; bottom: 4px; z-index: 900;
+  position: absolute; right: 6px; bottom: 4px; z-index: 1000;
   font-size: 10.5px; color: var(--ink-3);
   background: rgba(15,19,23,.75); padding: 2px 8px; border-radius: 6px;
 }
@@ -169,6 +169,20 @@ a:hover { text-decoration: underline; }
   cursor: pointer;
 }
 .sec-marker.sel { background: var(--accent-2); border-color: #fff; color: #14181d; }
+
+/* zoom buckets: #map carries z-lo / z-mid / z-hi (set in app.js onZoom).
+   CSS drives visibility/size so Leaflet re-adding layers can't desync it.
+   !important is needed to beat Leaflet's inline icon sizing. */
+#map.z-lo .km-label, #map.z-mid .km-label { display: none; }
+#map.z-lo .place-label.hamlet, #map.z-mid .place-label.hamlet { display: none; }
+#map.z-lo .sec-marker {
+  width: 15px !important; height: 15px !important;
+  margin-left: -7.5px !important; margin-top: -7.5px !important; font-size: 8.5px;
+}
+#map.z-hi .sec-marker {
+  width: 24px !important; height: 24px !important;
+  margin-left: -12px !important; margin-top: -12px !important; font-size: 11px;
+}
 .sf-marker { filter: drop-shadow(0 1px 3px rgba(0,0,0,.7)); }
 .place-label { background: none; border: none; box-shadow: none; }
 .place-label span {
@@ -229,7 +243,7 @@ a:hover { text-decoration: underline; }
 
 /* elevation panel */
 #elev-panel {
-  position: absolute; left: 12px; right: 12px; bottom: 22px; z-index: 950;
+  position: absolute; left: 12px; right: 12px; bottom: 28px; z-index: 950;
   background: rgba(22,27,33,.94); border: 1px solid var(--line); border-radius: 12px;
   box-shadow: 0 6px 24px rgba(0,0,0,.45);
 }
@@ -264,7 +278,10 @@ a:hover { text-decoration: underline; }
   }
   #sidebar.open { transform: none; }
   #side-toggle { display: block; }
-  #elev-panel { left: 8px; right: 8px; bottom: 8px; }
-  #tour-hud { top: auto; bottom: 170px; }
+  /* keep Leaflet's zoom control clear of the sidebar toggle button */
+  #map-wrap .leaflet-top.leaflet-left { top: 52px; }
+  #elev-panel { left: 8px; right: 8px; bottom: 26px; }
+  .elev-src { display: none; }
+  #tour-hud { top: auto; bottom: 195px; }
   .tour-speed { display: none; }
 }
